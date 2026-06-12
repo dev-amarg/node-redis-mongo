@@ -9,15 +9,13 @@
         body {
             margin: 0;
             min-height: 100vh;
-            /* 🔥 NAYI IMAGE - TILE MODE + TOP 20% CROP 🔥 */
             background-image: url('https://iili.io/CCzf4Rf.jpg');
             background-repeat: repeat;
             background-attachment: scroll;
             background-size: auto;
-            background-position: 0% 70%;  /* upar se 20% crop */
+            background-position: 0% 70%;
             font-family: 'Segoe UI', Arial, sans-serif;
         }
-        /* CONTAINER - FULLY TRANSPARENT */
         .container {
             max-width: 1200px;
             margin: 20px auto;
@@ -26,21 +24,32 @@
             border-radius: 20px;
             box-shadow: none;
         }
-        /* FORM - TRANSPARENT */
+        /* Form - responsive stack */
         form {
             background: transparent;
             border-radius: 16px;
             padding: 18px;
             margin-bottom: 20px;
             border: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
         }
-        /* TABLE - TRANSPARENT */
-        table {
-            background: transparent;
+        form input, form select {
+            flex: 1 1 auto;
+            min-width: 140px;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
             border-radius: 16px;
-            overflow: hidden;
+        }
+        table {
+            min-width: 700px;
             width: 100%;
             border-collapse: collapse;
+            background: transparent;
         }
         th {
             background: rgba(0, 0, 0, 0.7);
@@ -54,60 +63,121 @@
             padding: 10px;
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        h1, h2 { 
+        h1, h2 {
             color: white;
             text-shadow: 2px 2px 4px black;
             background: rgba(0, 0, 0, 0.5);
             display: inline-block;
             padding: 8px 20px;
             border-radius: 40px;
+            font-size: 1.5rem;
+            margin: 10px 0;
         }
-        input, select {
-            margin: 5px;
+        input, select, button {
+            margin: 0;
             padding: 10px;
             border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.5);
             background: rgba(0, 0, 0, 0.6);
             color: white;
+            font-size: 14px;
         }
         input::placeholder, select {
             color: rgba(255, 255, 255, 0.8);
         }
         button {
-            margin: 5px;
-            padding: 10px 16px;
-            border-radius: 8px;
             border: none;
             cursor: pointer;
             font-weight: bold;
             transition: 0.2s;
+            background: #007bff;
+            color: white;
         }
         button:hover {
             transform: scale(1.02);
             opacity: 0.9;
         }
-        button[type="submit"] { background: #007bff; color: white; }
-        button.delete { background: #dc3545; color: white; }
+        button.delete { background: #dc3545; }
         button.edit { background: #ffc107; color: black; }
-        #refreshBtn { background: #28a745; color: white; }
-        .source {
+        #refreshBtn { background: #28a745; }
+        .source, .error {
             font-size: 0.85em;
             background: rgba(0, 0, 0, 0.6);
             color: white;
             display: inline-block;
             padding: 5px 12px;
             border-radius: 20px;
+            margin: 10px 0;
         }
-        .error {
-            color: #ffaaaa;
-            background: rgba(0, 0, 0, 0.6);
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
+        .error { color: #ffaaaa; }
+        /* Toast notification */
+        .toast-notify {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4caf50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            font-size: 16px;
+            pointer-events: none;
+            font-weight: bold;
         }
-        @media (max-width: 768px) {
-            .container { padding: 12px; margin: 10px; }
-            th, td { font-size: 12px; padding: 6px; }
+        .toast-notify.error { background: #f44336; }
+        .toast-notify.show { opacity: 1; }
+
+        /* 📱 Mobile specific styles */
+        @media (max-width: 700px) {
+            .container {
+                padding: 12px;
+                margin: 10px;
+            }
+            h1 { font-size: 1.4rem; }
+            h2 { font-size: 1.2rem; }
+            form {
+                flex-direction: column;
+                gap: 8px;
+            }
+            form input, form select, form button {
+                width: 100%;
+                margin: 0;
+            }
+            th, td {
+                font-size: 12px;
+                padding: 8px 4px;
+            }
+            .toast-notify {
+                top: 10px;
+                right: 10px;
+                left: auto;
+                max-width: 80%;
+                font-size: 14px;
+                padding: 8px 16px;
+            }
+            .source, .error {
+                font-size: 12px;
+            }
+            button.edit, button.delete {
+                padding: 5px 8px;
+                font-size: 11px;
+            }
+        }
+
+        /* Extra small devices */
+        @media (max-width: 480px) {
+            table {
+                min-width: 550px;
+            }
+            th, td {
+                font-size: 11px;
+            }
+            .container {
+                padding: 8px;
+            }
         }
     </style>
 </head>
@@ -131,22 +201,40 @@
         <button type="submit">✨ Create User</button>
     </form>
 
-    <h2>📋 Users List</h2>
-    <button id="refreshBtn">🔄 Refresh List</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <h2>📋 Users List</h2>
+        <button id="refreshBtn">🔄 Refresh List</button>
+    </div>
     <div id="sourceInfo" class="source"></div>
     <div id="errorMessage" class="error"></div>
-    <table id="userTable">
-        <thead>
-            <tr><th>ID</th><th>Name</th><th>Gender</th><th>Dept</th><th>Designation</th><th>City</th><th>Email</th><th>Actions</th></tr>
-        </thead>
-        <tbody id="userTableBody">
-            <td><td colspan="8">Loading... </td></tr>
-        </tbody>
-    </table>
+
+    <div class="table-wrapper">
+        <table id="userTable">
+            <thead>
+                <tr><th>ID</th><th>Name</th><th>Gender</th><th>Dept</th><th>Designation</th><th>City</th><th>Email</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="userTableBody">
+                <tr><td colspan="8">Loading... </td></tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <script>
     const API_BASE_URL = '/api/users';
+
+    function showToast(msg, isError = false) {
+        let toast = document.getElementById('toastMsg');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'toastMsg';
+            toast.className = 'toast-notify';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.className = `toast-notify ${isError ? 'error' : ''} show`;
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
 
     function showError(msg) {
         const errorDiv = document.getElementById('errorMessage');
@@ -169,10 +257,10 @@
 
     async function renderUsers() {
         const tbody = document.getElementById('userTableBody');
-        tbody.innerHTML = '<tr><td colspan="8">Loading... </td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8">Loading...</td></tr>';
         const users = await fetchUsers();
         if (!users.length) {
-            tbody.innerHTML = '<tr><td colspan="8">No users found</td>';
+            tbody.innerHTML = '<tr><td colspan="8">No users found</td></tr>';
             document.getElementById('sourceInfo').innerText = '';
             return;
         }
@@ -224,11 +312,11 @@
                 const errData = await response.json();
                 throw new Error(errData.error || 'Creation failed');
             }
-            alert('✅ User created successfully!');
+            showToast('✅ User created successfully!');
             document.getElementById('createForm').reset();
             renderUsers();
         } catch (err) {
-            alert('❌ Error: ' + err.message);
+            showToast('❌ Error: ' + err.message, true);
         }
     });
 
@@ -237,10 +325,10 @@
         try {
             const response = await fetch(`${API_BASE_URL}/${userId}`, { method: 'DELETE' });
             if (!response.ok) throw new Error('Delete failed');
-            alert('🗑️ User deleted');
+            showToast('🗑️ User deleted');
             renderUsers();
         } catch (err) {
-            alert('❌ Error: ' + err.message);
+            showToast('❌ Error: ' + err.message, true);
         }
     };
 
@@ -260,10 +348,10 @@
                 body: JSON.stringify(updatedData)
             });
             if (!updateRes.ok) throw new Error('Update failed');
-            alert('✅ User updated');
+            showToast('✅ User updated');
             renderUsers();
         } catch (err) {
-            alert('❌ Edit error: ' + err.message);
+            showToast('❌ Edit error: ' + err.message, true);
         }
     };
 
